@@ -53,6 +53,8 @@ public class JoinMapper extends Mapper<LongWritable, Text, OrderBean, NullWritab
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
     {
+        // 定义计数器
+        context.getCounter("Custom counter", "count").increment(1);
         String line = value.toString();
         String[] fields = line.split("\t");
         outKey.setOrderId(fields[0]);
