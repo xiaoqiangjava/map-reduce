@@ -8,6 +8,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -25,6 +28,14 @@ public class WordCountDriver
     {
         // 获取Job实例
         Configuration conf = new Configuration();
+        // 启用map端输出结果压缩
+        conf.setBoolean("mapreduce.map.output.compress", true);
+        conf.setClass("mapreduce.map.output.compress.codec", BZip2Codec.class, CompressionCodec.class);
+        // 设置输出压缩，也可以在outputformat中设置
+//        conf.setBoolean("mapreduce.output.fileoutputformat.compress", true);
+//        conf.setClass("mapreduce.output.fileoutputformat.compress.codec", GzipCodec.class, CompressionCodec.class);
+//        // 设置按块压缩，默认是按行压缩
+//        conf.set("mapreduce.output.fileoutputformat.compress.type", "BLOCK");
         Job job = Job.getInstance(conf, WordCountDriver.class.getSimpleName());
         // 设置主程序jar包
         job.setJarByClass(WordCountDriver.class);
@@ -47,6 +58,8 @@ public class WordCountDriver
         FileInputFormat.setInputPaths(job, new Path(args[0]));
         Path output = new Path(args[1]);
         FileOutputFormat.setOutputPath(job, output);
+        FileOutputFormat.setCompressOutput(job, true);
+        FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);
         FileSystem fs = FileSystem.get(conf);
         if (fs.exists(output))
         {
